@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+mcp
+faker
+sqlalchemy
+pydantic
+python-dotenv
+aiosmtplib

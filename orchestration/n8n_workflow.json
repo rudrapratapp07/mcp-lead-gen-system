@@ -1,0 +1,172 @@
+{
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "requestMethod": "POST",
+                "url": "http://127.0.0.1:8000/tools/generate_leads",
+                "jsonParameters": true,
+                "options": {},
+                "bodyParametersJson": "{ \"count\": 10 }"
+            },
+            "name": "Generate Leads Tools",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "requestMethod": "GET",
+                "url": "http://127.0.0.1:8000/api/leads",
+                "options": {}
+            },
+            "name": "Get All Leads",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                650,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "functionCode": "return items[0].json.map(item => { return { json: item } });"
+            },
+            "name": "Split Items",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [
+                850,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "requestMethod": "POST",
+                "url": "http://127.0.0.1:8000/tools/enrich_lead",
+                "jsonParameters": true,
+                "options": {},
+                "bodyParametersJson": "={ \"lead_id\": {{$node[\"Split Items\"].json[\"id\"]}} }"
+            },
+            "name": "Enrich Lead Tool",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                1050,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "requestMethod": "POST",
+                "url": "http://127.0.0.1:8000/tools/generate_messages",
+                "jsonParameters": true,
+                "options": {},
+                "bodyParametersJson": "={ \"lead_id\": {{$node[\"Split Items\"].json[\"id\"]}} }"
+            },
+            "name": "Gen Messages Tool",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                1250,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "requestMethod": "POST",
+                "url": "http://127.0.0.1:8000/tools/send_message",
+                "jsonParameters": true,
+                "options": {},
+                "bodyParametersJson": "={ \"lead_id\": {{$node[\"Split Items\"].json[\"id\"]}} }"
+            },
+            "name": "Send Message Tool",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                1450,
+                200
+            ]
+        }
+    ],
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Generate Leads Tools",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Generate Leads Tools": {
+            "main": [
+                [
+                    {
+                        "node": "Get All Leads",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get All Leads": {
+            "main": [
+                [
+                    {
+                        "node": "Split Items",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Split Items": {
+            "main": [
+                [
+                    {
+                        "node": "Enrich Lead Tool",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Enrich Lead Tool": {
+            "main": [
+                [
+                    {
+                        "node": "Gen Messages Tool",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gen Messages Tool": {
+            "main": [
+                [
+                    {
+                        "node": "Send Message Tool",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
